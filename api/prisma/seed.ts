@@ -5,6 +5,8 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Seeding training sessions...')
 
+  // Registrations are deleted before sessions (defensive ordering; the FK also cascades).
+  await prisma.registration.deleteMany()
   await prisma.trainingSession.deleteMany()
 
   await prisma.trainingSession.createMany({
@@ -65,6 +67,39 @@ async function main() {
         status: 'active',
       },
     ],
+  })
+
+  // Purpose-made full fixture (registered === capacity) so the 409 integration
+  // test can target a dedicated session instead of mutating seeded data.
+  const fullSession = await prisma.trainingSession.create({
+    data: {
+      title: 'Full Workshop Fixture',
+      description:
+        'A workshop that is already at capacity. It exists so tests can exercise the "session is full" response without mutating any other seeded session.',
+      date: new Date('2026-06-24T09:00:00Z'),
+      capacity: 2,
+      registered: 2,
+      location: 'Training Room A, Level 3',
+      deliveryMode: 'in-person',
+      status: 'active',
+    },
+  })
+
+  await prisma.registration.create({
+    data: {
+      sessionId: fullSession.id,
+      name: 'Fixture Attendee One',
+      email: 'fixture.one@example.com',
+      status: 'registered',
+    },
+  })
+  await prisma.registration.create({
+    data: {
+      sessionId: fullSession.id,
+      name: 'Fixture Attendee Two',
+      email: 'fixture.two@example.com',
+      status: 'registered',
+    },
   })
 
   const count = await prisma.trainingSession.count()

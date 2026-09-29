@@ -103,3 +103,96 @@
   color: #16a34a;
   font-weight: 500;
 }
+
+.session-card__registration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-card__register {
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.session-card__register:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.session-card__register:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.session-card__cancel {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.session-card__cancel:hover {
+  background: var(--color-bg);
+}
+
+.session-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.session-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-card__field-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.session-card__input {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.session-card__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.session-card__form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.session-card__error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-error);
+  font-weight: 500;
+}
+
+.session-card__success {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #16a34a;
+  font-weight: 500;
+}

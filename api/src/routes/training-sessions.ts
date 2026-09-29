@@ -1,6 +1,10 @@
 import { Router, IRouter, Request, Response } from 'express'
 import prisma from '../lib/prisma'
-import { getAllSessions, getSessionById } from '../services/trainingSessionService'
+import {
+  getAllSessions,
+  getSessionById,
+  createRegistration,
+} from '../services/trainingSessionService'
 
 const router: IRouter = Router()
 
@@ -47,6 +51,31 @@ router.get('/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching training session:', error)
     res.status(500).json({ error: 'Failed to fetch training session' })
+  }
+})
+
+// Deliberate difference from GET /:id — a non-numeric id is 404 on this endpoint (pinned by test).
+router.post('/:id/registrations', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10)
+  if (isNaN(id)) {
+    res.status(404).json({ error: 'Training session not found' })
+    return
+  }
+
+  // Body may be undefined or {}; the service's validation still yields 400.
+  const { name, email } = req.body ?? {}
+
+  try {
+    const registration = await createRegistration(id, name, email)
+    res.status(201).json(registration)
+  } catch (error) {
+    const err = error as { status?: number; error?: string }
+    if (typeof err.status === 'number') {
+      res.status(err.status).json({ error: err.error })
+      return
+    }
+    console.error('Error creating registration:', error)
+    res.status(500).json({ error: 'Failed to register for training session' })
   }
 })
 
