@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    {
+      "action": "shell",
+      "resource": "git push *main*",
+      "effect": "deny"
+    }
+  ],
+  "formatter": {
+    "prettier": {
+      "command": ["npx", "prettier", "--write", "$FILE"]
+    }
+  },
+  "mcp": {
+    "servers": {
+      "trello": {
+        "type": "remote",
+        "url": "https://mcp.trello.com/v1"
+      }
+    }
+  }
+}
