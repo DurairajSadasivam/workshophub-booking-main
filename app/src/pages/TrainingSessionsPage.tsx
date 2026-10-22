@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TrainingSession } from '../types'
 import TrainingSessionCard from '../components/TrainingSessionCard'
 import './TrainingSessionsPage.css'
@@ -10,25 +10,21 @@ function TrainingSessionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // `initial` gates the full-page loading state so a post-registration refresh
-  // only swaps the session list instead of flashing the whole page.
-  const fetchSessions = useCallback(async (initial = false) => {
-    if (initial) setLoading(true)
-    try {
-      const res = await fetch(`${API_BASE}/api/training-sessions`)
-      if (!res.ok) throw new Error(`Server error: ${res.status}`)
-      const data = (await res.json()) as TrainingSession[]
-      setSessions(data)
-      setLoading(false)
-    } catch (err) {
-      setError((err as Error).message)
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    fetchSessions(true)
-  }, [fetchSessions])
+    fetch(`${API_BASE}/api/training-sessions`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server error: ${res.status}`)
+        return res.json()
+      })
+      .then((data: TrainingSession[]) => {
+        setSessions(data)
+        setLoading(false)
+      })
+      .catch((err: Error) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [])
 
   if (loading) {
     return <div className="page-state">Loading training sessions...</div>
@@ -55,11 +51,7 @@ function TrainingSessionsPage() {
       </p>
       <div className="sessions-grid">
         {sessions.map((session) => (
-          <TrainingSessionCard
-            key={session.id}
-            session={session}
-            onRegistered={() => fetchSessions(false)}
-          />
+          <TrainingSessionCard key={session.id} session={session} />
         ))}
       </div>
     </section>
