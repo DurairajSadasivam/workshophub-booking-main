@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { TrainingSession } from '../types'
 import TrainingSessionCard from '../components/TrainingSessionCard'
 import './TrainingSessionsPage.css'
@@ -26,6 +26,16 @@ function TrainingSessionsPage() {
       })
   }, [])
 
+  // Refetch without touching the loading/error state so cards stay mounted and keep their confirmation message.
+  const refetchSessions = useCallback(() => {
+    fetch(`${API_BASE}/api/training-sessions`)
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error(`Server error: ${res.status}`))
+      )
+      .then((data: TrainingSession[]) => setSessions(data))
+      .catch(() => undefined)
+  }, [])
+
   if (loading) {
     return <div className="page-state">Loading training sessions...</div>
   }
@@ -51,7 +61,7 @@ function TrainingSessionsPage() {
       </p>
       <div className="sessions-grid">
         {sessions.map((session) => (
-          <TrainingSessionCard key={session.id} session={session} />
+          <TrainingSessionCard key={session.id} session={session} onRegistered={refetchSessions} />
         ))}
       </div>
     </section>

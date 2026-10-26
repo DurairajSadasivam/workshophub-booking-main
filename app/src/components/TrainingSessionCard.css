@@ -103,3 +103,76 @@
   color: #16a34a;
   font-weight: 500;
 }
+
+.session-card__confirmation {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.88rem;
+}
+
+.register-button {
+  align-self: flex-start;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.register-button:hover:not(:disabled) {
+  background: #1e40af;
+}
+
+.register-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.register-button--secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.register-button--secondary:hover:not(:disabled) {
+  background: var(--color-border);
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.register-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.register-form__field input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.register-form__error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.85rem;
+}
+
+.register-form__actions {
+  display: flex;
+  gap: 0.5rem;
+}
