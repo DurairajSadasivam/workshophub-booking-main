@@ -1,34 +1,99 @@
 ---
-description: Kick off a Trello story - move to In Progress, save spec, create branch
+description: Kick off a Trello story - read the card, move it to In Progress (or comment on a repeat attempt), save it to ./stories, and create the wh-{id}-{desc} branch.
 ---
 
-Kick off Trello card `$ARGUMENTS` for WorkshopHub.
+# Kickoff (WorkshopHub)
 
-Card ID is `$ARGUMENTS` (e.g. `WH-2`). If no argument is given, use the Question tool to ask for the card ID and stop until answered.
+Start work on a story from Trello. Card: `$ARGUMENTS`
 
-## Workflow
+Stop after the branch is created and confirmed. Do not write any feature code, analysis docs, or prompts, and do not commit or push.
 
-1. **Read card:**
-   - Use `trelloReadCard` to read the issue content for the given card ID.
-   - Show title, status/column, description, and acceptance criteria to the user.
+## Steps
 
-2. **Update card status:**
-   - Check the current status/column of the card.
-   - If it is NOT already in the `In Progress` column, use the `transition` tool to move it to `In Progress`.
-   - If it IS already in `In Progress`, do not transition. Instead use `trelloWriteCard` to leave a comment noting a new kickoff attempt (include date and branch intent).
+### 1. Get the card
 
-3. **Clarify:**
-   - Use the `Question` tool for clarifications (scope, acceptance criteria, approach) before creating files/branch. Do not assume ambiguous requirements.
+- If `$ARGUMENTS` is empty, use the `question` tool to ask for the Trello card URL or ID. Do not guess.
+- Read the card with `trelloReadCard` (`action: "get"`, `cardIdOrUrl: <argument>`).
+- Note the card's `id` (ARI, needed for writes), name, description, labels, comments, current list, and board.
+- If the card cannot be found or read, report the error and stop.
 
-4. **Save story:**
-   - Save the story as a markdown file in `./stories`, named `wh-{id}-{desc}.md` (lowercase, hyphen-slug, e.g. `./stories/wh-2-session-registration.md`).
-   - Include: card ID, title, status, source link/ID, summary, acceptance criteria, clarifications/notes.
-   - Create `./stories` if it does not exist.
+### 2. Move to In Progress, or record the attempt
 
-5. **Create branch and stop:**
-   - Create and checkout branch `wh-{id}-{desc}` matching the story file slug, e.g.:
-     ```sh
-     git checkout -b wh-2-session-registration
-     ```
-   - Confirm the branch name with `git branch --show-current` and show it to the user.
-   - Stop. Do not implement, commit, or push.
+- Find the board's lists with `trelloReadCard` (`action: "list_by_board"`, `boardIdOrUrl: <the card's board>`). Page through with `cursor` until you find the list named `In Progress` (case-insensitive match).
+- If no `In Progress` list exists, use the `question` tool to ask which list to use. Do not create one.
+- **If the card is not in `In Progress`:** move it with `trelloWriteCard` (`action: "move"`, `cardId: <card ARI>`, `listId: <In Progress list ARI>`).
+- **If the card is already in `In Progress`:** do not move it. Add a comment with `trelloWriteCard` (`action: "add_comment"`, `cardId: <card ARI>`) recording the new attempt, for example:
+  `Kickoff attempt on <YYYY-MM-DD>: work (re)started on branch wh-<id>-<desc>.`
+  Post the comment after the branch name is settled in step 4 so it names the right branch.
+
+### 3. Clarify
+
+Review the card for gaps before saving it: missing acceptance criteria, unclear scope, ambiguous rules (capacity, validation, error cases), or unknown UI/API expectations. Use the `question` tool for anything you cannot resolve from the card or the codebase (keep it to what really matters, at most 4 questions). Record the answers in the story file. If nothing is unclear, skip this step.
+
+### 4. Decide the branch name
+
+Format: `wh-{id}-{desc}`. It must match `wh-<string>-<string>` (enforced by `scripts/branch-name-check.sh`).
+
+- `{id}`: the story number. Use a `WH-<n>` key from the card title, description, or labels if there is one; otherwise use the card's short ID (`idShort`/card number). If neither is clear, ask the user.
+- `{desc}`: 2-5 word kebab-case summary of the card title: lowercase, `a-z0-9` and hyphens only, no leading/trailing or doubled hyphens.
+- Example: `wh-2-session-registration`.
+
+### 5. Save the story
+
+Write `./stories/wh-{id}-{desc}.md` (create `./stories` if needed). If the file already exists, show it and ask before overwriting. Use this layout:
+
+```markdown
+# WH-{id}: <card title>
+
+- **Trello card:** <card URL>
+- **Status:** In Progress
+- **Kicked off:** <YYYY-MM-DD>
+- **Branch:** wh-{id}-{desc}
+- **Labels:** <labels or "none">
+
+## Description
+
+<card description, verbatim>
+
+## Acceptance Criteria
+
+<from the card; "Not specified on card" if absent>
+
+## Comments
+
+<relevant card comments with author and date, or "None">
+
+## Clarifications
+
+<questions asked in step 3 and the user's answers, or "None">
+```
+
+### 6. Create and check out the branch
+
+```bash
+git status --short
+git branch --show-current
+```
+
+- If there are uncommitted changes, tell the user and ask whether to carry them onto the new branch before continuing.
+- If the branch already exists (`git show-ref --verify --quiet refs/heads/wh-{id}-{desc}`), ask whether to check it out instead of creating it.
+- Otherwise:
+
+```bash
+git switch -c wh-{id}-{desc}
+```
+
+Then post the step 2 comment if the card was already in `In Progress`.
+
+### 7. Confirm and stop
+
+```bash
+git branch --show-current
+```
+
+Report:
+- the branch name now checked out,
+- whether the card was moved to `In Progress` or a comment was added,
+- the path of the saved story file.
+
+Then stop.
