@@ -11,3 +11,9 @@ export async function getSessionById(id: number) {
     where: { id },
   })
 }
+
+export async function createRegistration(sessionId: number, name: string, email: string) {
+  return prisma.registration.create({
+    data: { sessionId, name, email },
+  })
+}
