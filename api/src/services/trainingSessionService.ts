@@ -1,3 +1,4 @@
+import type { Registration } from '@prisma/client'
 import prisma from '../lib/prisma'
 
 export async function getAllSessions() {
@@ -12,8 +13,33 @@ export async function getSessionById(id: number) {
   })
 }
 
-export async function createRegistration(sessionId: number, name: string, email: string) {
-  return prisma.registration.create({
-    data: { sessionId, name, email },
+export type CreateRegistrationResult =
+  | { outcome: 'created'; registration: Registration }
+  | { outcome: 'not_found' }
+  | { outcome: 'full' }
+
+export async function createRegistration(
+  sessionId: number,
+  name: string,
+  email: string
+): Promise<CreateRegistrationResult> {
+  return prisma.$transaction(async (tx) => {
+    const session = await tx.trainingSession.findUnique({ where: { id: sessionId } })
+    if (!session) {
+      return { outcome: 'not_found' as const }
+    }
+
+    const seat = await tx.trainingSession.updateMany({
+      where: { id: sessionId, registered: { lt: session.capacity } },
+      data: { registered: { increment: 1 } },
+    })
+    if (seat.count === 0) {
+      return { outcome: 'full' as const }
+    }
+
+    const registration = await tx.registration.create({
+      data: { sessionId, name, email },
+    })
+    return { outcome: 'created' as const, registration }
   })
 }

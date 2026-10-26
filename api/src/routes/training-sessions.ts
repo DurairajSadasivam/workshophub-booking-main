@@ -68,14 +68,17 @@ router.post('/:id/registrations', async (req: Request, res: Response) => {
       return
     }
 
-    const session = await getSessionById(id)
-    if (!session) {
+    const result = await createRegistration(id, name.trim(), email.trim())
+    if (result.outcome === 'not_found') {
       res.status(404).json({ error: 'Training session not found' })
       return
     }
+    if (result.outcome === 'full') {
+      res.status(409).json({ error: 'Training session is full' })
+      return
+    }
 
-    const registration = await createRegistration(id, name.trim(), email.trim())
-    res.status(201).json(registration)
+    res.status(201).json(result.registration)
   } catch (error) {
     console.error('Error creating registration:', error)
     res.status(500).json({ error: 'Failed to create registration' })

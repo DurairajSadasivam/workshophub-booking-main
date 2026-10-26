@@ -1,4 +1,3 @@
-// @ts-ignore
 import request from 'supertest'
 import app from '../../src/app'
 
@@ -6,13 +5,16 @@ describe('POST /api/training-sessions/:id/registrations', () => {
   it('returns 201 with registration details for an existing session', async () => {
     const sessionsResponse = await request(app).get('/api/training-sessions')
     expect(sessionsResponse.status).toBe(200)
-    expect(sessionsResponse.body.length).toBeGreaterThan(0)
+    const openSession = (
+      sessionsResponse.body as Array<{ id: number; registered: number; capacity: number }>
+    ).find((s) => s.registered < s.capacity)
+    expect(openSession).toBeDefined()
 
-    const sessionId: number = sessionsResponse.body[0].id
+    const sessionId: number = openSession!.id
 
     const response = await request(app)
       .post(`/api/training-sessions/${sessionId}/registrations`)
-      .send({ name: 'Ada Lovelace', email: 'ada@example.com' })
+      .send({ name: 'Ada Lovelace', email: `ada+${Date.now()}@example.com` })
 
     expect(response.status).toBe(201)
     expect(response.body).toEqual(
@@ -24,7 +26,7 @@ describe('POST /api/training-sessions/:id/registrations', () => {
       })
     )
     expect(response.body.name).toBe('Ada Lovelace')
-    expect(response.body.email).toBe('ada@example.com')
+    expect(response.body.email).toMatch(/^ada\+\d+@example\.com$/)
     expect(response.body.sessionId).toBe(sessionId)
   })
 })
