@@ -32,6 +32,10 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+router.all('/', (_req: Request, res: Response) => {
+  res.set('Allow', 'GET').status(405).json({ error: 'Method not allowed' })
+})
+
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10)
