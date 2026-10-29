@@ -77,8 +77,8 @@ router.post('/:id/registrations', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Training session not found' })
       return
     }
-    if (result.outcome === 'full') {
-      res.status(409).json({ error: 'Training session is full' })
+    if (result.outcome === 'waitlisted') {
+      res.status(202).json({ status: 'waitlisted', position: result.position })
       return
     }
 
