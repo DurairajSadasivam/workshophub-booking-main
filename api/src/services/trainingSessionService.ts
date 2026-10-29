@@ -15,8 +15,8 @@ export async function getSessionById(id: number) {
 
 export type CreateRegistrationResult =
   | { outcome: 'created'; registration: Registration }
+  | { outcome: 'waitlisted'; registration: Registration; position: number }
   | { outcome: 'not_found' }
-  | { outcome: 'full' }
 
 export async function createRegistration(
   sessionId: number,
@@ -34,11 +34,17 @@ export async function createRegistration(
       data: { registered: { increment: 1 } },
     })
     if (seat.count === 0) {
-      return { outcome: 'full' as const }
+      const registration = await tx.registration.create({
+        data: { sessionId, name, email, status: 'waitlisted' },
+      })
+      const position = await tx.registration.count({
+        where: { sessionId, status: 'waitlisted', id: { lte: registration.id } },
+      })
+      return { outcome: 'waitlisted' as const, registration, position }
     }
 
     const registration = await tx.registration.create({
-      data: { sessionId, name, email },
+      data: { sessionId, name, email, status: 'confirmed' },
     })
     return { outcome: 'created' as const, registration }
   })

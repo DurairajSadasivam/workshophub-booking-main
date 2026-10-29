@@ -113,6 +113,11 @@
   font-size: 0.88rem;
 }
 
+.session-card__confirmation--waitlisted {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .register-button {
   align-self: flex-start;
   padding: 0.45rem 1rem;

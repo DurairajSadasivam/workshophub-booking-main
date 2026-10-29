@@ -32,6 +32,10 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+router.all('/', (_req: Request, res: Response) => {
+  res.set('Allow', 'GET').status(405).json({ error: 'Method not allowed' })
+})
+
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10)
@@ -73,8 +77,8 @@ router.post('/:id/registrations', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Training session not found' })
       return
     }
-    if (result.outcome === 'full') {
-      res.status(409).json({ error: 'Training session is full' })
+    if (result.outcome === 'waitlisted') {
+      res.status(202).json({ status: 'waitlisted', position: result.position })
       return
     }
 

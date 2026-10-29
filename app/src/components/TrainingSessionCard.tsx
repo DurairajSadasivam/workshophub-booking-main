@@ -5,6 +5,11 @@ import './TrainingSessionCard.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
+interface WaitlistResponse {
+  status: 'waitlisted'
+  position: number
+}
+
 interface Props {
   session: TrainingSession
   onRegistered?: () => void
@@ -45,6 +50,7 @@ function TrainingSessionCard({ session, onRegistered }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<string | null>(null)
+  const [waitlisted, setWaitlisted] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -61,11 +67,22 @@ function TrainingSessionCard({ session, onRegistered }: Props) {
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null
         setFormError(body?.error ?? `Registration failed (${res.status})`)
-        if (res.status === 409) onRegistered?.()
         return
       }
 
-      setConfirmation(`You're registered for ${session.title}. See you there, ${name.trim()}!`)
+      if (res.status === 202) {
+        const body = (await res.json().catch(() => null)) as WaitlistResponse | null
+        const position = body?.position
+        setWaitlisted(true)
+        setConfirmation(
+          `You're on the waitlist for ${session.title}${
+            position ? ` (position ${position})` : ''
+          }, ${name.trim()}. Your place is not confirmed. We'll let you know if a spot opens up.`
+        )
+      } else {
+        setWaitlisted(false)
+        setConfirmation(`You're registered for ${session.title}. See you there, ${name.trim()}!`)
+      }
       setFormOpen(false)
       setName('')
       setEmail('')
@@ -117,12 +134,17 @@ function TrainingSessionCard({ session, onRegistered }: Props) {
       </div>
 
       {confirmation && (
-        <p className="session-card__confirmation" role="status">
+        <p
+          className={`session-card__confirmation ${
+            waitlisted ? 'session-card__confirmation--waitlisted' : ''
+          }`}
+          role="status"
+        >
           {confirmation}
         </p>
       )}
 
-      {formOpen && !isFull ? (
+      {formOpen ? (
         <form className="register-form" onSubmit={handleSubmit}>
           <label className="register-form__field">
             <span>Name</span>
@@ -151,7 +173,13 @@ function TrainingSessionCard({ session, onRegistered }: Props) {
           )}
           <div className="register-form__actions">
             <button type="submit" className="register-button" disabled={submitting}>
-              {submitting ? 'Registering...' : 'Confirm registration'}
+              {submitting
+                ? isFull
+                  ? 'Joining waitlist...'
+                  : 'Registering...'
+                : isFull
+                  ? 'Confirm waitlist spot'
+                  : 'Confirm registration'}
             </button>
             <button
               type="button"
@@ -170,13 +198,12 @@ function TrainingSessionCard({ session, onRegistered }: Props) {
         <button
           type="button"
           className="register-button"
-          disabled={isFull}
           onClick={() => {
             setConfirmation(null)
             setFormOpen(true)
           }}
         >
-          {isFull ? 'Session full' : 'Register'}
+          {isFull ? 'Join Waitlist' : 'Register'}
         </button>
       )}
     </article>
