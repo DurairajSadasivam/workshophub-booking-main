@@ -13,17 +13,18 @@ datasource db {
 }
 
 model TrainingSession {
-  id            Int            @id @default(autoincrement())
-  title         String
-  description   String
-  date          DateTime
-  capacity      Int
-  registered    Int            @default(0)
-  location      String
-  deliveryMode  String
-  status        String         @default("active")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  date         DateTime
+  capacity     Int
+  registered   Int      @default(0)
+  location     String
+  deliveryMode String
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   registrations Registration[]
 
   @@map("training_sessions")
@@ -32,12 +33,11 @@ model TrainingSession {
 model Registration {
   id        Int             @id @default(autoincrement())
   sessionId Int
+  session   TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   name      String
   email     String
-  // Lifecycle states arrive with WH-3/WH-4; reserved now to avoid schema churn.
   status    String          @default("registered")
   createdAt DateTime        @default(now())
-  session   TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("registrations")
 }

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 ROOT_DIR := $(shell pwd)
 API_DIR := $(ROOT_DIR)/api
 
-.PHONY: setup dev test test-unit lint format-check build seed reset-db smoke-test security reasons-lint prod-up prod-down prod-logs
+.PHONY: setup dev test test-unit lint format-check build seed reset-db smoke-test security prod-up prod-down prod-logs
 
 ## setup: Install dependencies, generate Prisma client, push schema, seed database
 setup:
@@ -54,10 +54,6 @@ smoke-test:
 ## security: Run local security checks (Gitleaks + Trivy)
 security:
 	@bash scripts/security.sh
-
-## reasons-lint: Validate REASONS structure in spdd/prompt/ files
-reasons-lint:
-	@bash scripts/reasons-lint.sh
 
 ## prod-up: Start production-like environment with Docker Compose
 prod-up:

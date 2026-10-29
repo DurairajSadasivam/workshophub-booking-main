@@ -1,5 +1,19 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen3.5": {
+          "name": "qwen3.5"
+        }
+      }
+    }
+  },
   "permissions": [
     {
       "action": "shell",
@@ -18,13 +32,9 @@
         "type": "remote",
         "url": "https://mcp.trello.com/v1"
       },
-      "github": {
+      "gitlab": {
         "type": "remote",
-        "url": "https://api.githubcopilot.com/mcp/",
-        "oauth": false,
-        "headers": {
-          "Authorization": "Bearer {env:GITHUB_TOKEN}"
-        }
+        "url": "https://gitlab.com/api/v4/mcp"
       }
     }
   }

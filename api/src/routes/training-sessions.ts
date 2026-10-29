@@ -54,28 +54,34 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
-// Deliberate difference from GET /:id — a non-numeric id is 404 on this endpoint (pinned by test).
 router.post('/:id/registrations', async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10)
-  if (isNaN(id)) {
-    res.status(404).json({ error: 'Training session not found' })
-    return
-  }
-
-  // Body may be undefined or {}; the service's validation still yields 400.
-  const { name, email } = req.body ?? {}
-
   try {
-    const registration = await createRegistration(id, name, email)
-    res.status(201).json(registration)
-  } catch (error) {
-    const err = error as { status?: number; error?: string }
-    if (typeof err.status === 'number') {
-      res.status(err.status).json({ error: err.error })
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+      res.status(400).json({ error: 'Invalid session ID' })
       return
     }
+
+    const { name, email } = req.body ?? {}
+    if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' || !email.trim()) {
+      res.status(400).json({ error: 'name and email are required' })
+      return
+    }
+
+    const result = await createRegistration(id, name.trim(), email.trim())
+    if (result.outcome === 'not_found') {
+      res.status(404).json({ error: 'Training session not found' })
+      return
+    }
+    if (result.outcome === 'full') {
+      res.status(409).json({ error: 'Training session is full' })
+      return
+    }
+
+    res.status(201).json(result.registration)
+  } catch (error) {
     console.error('Error creating registration:', error)
-    res.status(500).json({ error: 'Failed to register for training session' })
+    res.status(500).json({ error: 'Failed to create registration' })
   }
 })
 
